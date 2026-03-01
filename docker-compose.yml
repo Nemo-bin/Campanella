@@ -31,7 +31,7 @@ services:
       - ./src/backend/.env
     depends_on:
       - db
-    command: python -m app.scripts.seed
+    command: python -m db.scripts.seed
 
   frontend:
     build: ./src/frontend
