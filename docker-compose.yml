@@ -2,12 +2,12 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: appyser
+      POSTGRES_USER: appuser
       POSTGRES_PASSWORD: password
       POSTGRES_DB: appdb
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./src/backend/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "5432:5432"
 
@@ -31,7 +31,7 @@ services:
       - ./src/backend/.env
     depends_on:
       - db
-    command: python -m db.scripts.seed
+    command: python -m db.utils.seed
 
   frontend:
     build: ./src/frontend
