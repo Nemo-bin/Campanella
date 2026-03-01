@@ -3,3 +3,6 @@ python-dotenv
 flask
 flask-cors
 gunicorn
+pytest
+pytest-mock
+pytest-cov
