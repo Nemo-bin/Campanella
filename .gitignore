@@ -1,0 +1,16 @@
+# Node
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+env/
+venv/
+
+# VSCode
+.vscode/
+
+# Docker
+*.log
+docker-compose.override.yml
