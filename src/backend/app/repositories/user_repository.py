@@ -1,7 +1,6 @@
 from sqlalchemy.exc import IntegrityError
-from sql.alchemy.sql import func
+from sqlalchemy.sql import func
 from app.infrastructure.db.models.user_model import UserModel
-from app.utils.security import verify_password
 
 class UserRepository:
     def __init__(self, db):

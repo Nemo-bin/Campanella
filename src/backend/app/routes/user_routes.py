@@ -6,9 +6,13 @@ users_bp = Blueprint("users", __name__, url_prefix="/users")
 
 @users_bp.route("/register", methods=["POST"])
 def register_user():
-    data = request.json()
+    data = request.json
     repo = UserRepository(g.db)
     service = UserService(repo)
+
+    required_fields = ["email", "username", "password"]
+    if not data or not all(k in data for k in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
 
     try:
         user = service.register_user(
@@ -32,6 +36,10 @@ def login_user():
     repo = UserRepository(g.db)
     service = UserService(repo)
 
+    required_fields = ["email", "password"]
+    if not data or not all(k in data for k in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
+
     try:
         user = service.login_user(
             email=data["email"],
@@ -44,4 +52,4 @@ def login_user():
         }), 200
     
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 401
