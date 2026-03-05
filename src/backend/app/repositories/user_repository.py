@@ -1,4 +1,5 @@
 from sqlalchemy.exc import IntegrityError
+from sql.alchemy.sql import func
 from app.infrastructure.db.models.user_model import UserModel
 from app.utils.security import verify_password
 
@@ -22,6 +23,12 @@ class UserRepository:
         except IntegrityError:
             self.db.rollback()
             raise ValueError("User with this email or username already exists")
+        
+    def get_user_by_id(self, id: int) -> UserModel | None:
+        return self.db.query(UserModel).filter(UserModel.id == id).first()
     
-    def get_user_by_email(self, email):
+    def get_user_by_email(self, email: str) -> UserModel | None:
         return self.db.query(UserModel).filter(UserModel.email == email).first()
+    
+    def get_user_by_username(self, username: str) -> UserModel | None:
+        return self.db.query(UserModel).filter(UserModel.username == username).first()
