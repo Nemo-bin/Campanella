@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 
-from ..services.version_service import get_stack_versions
+from app.services.version_service import get_stack_versions
 
 version_bp = Blueprint("version", __name__, url_prefix="/version")
 

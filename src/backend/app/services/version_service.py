@@ -1,5 +1,5 @@
-from ..repositories.version_repository import get_python_version, get_flask_version, get_postgresql_version
-from .. import get_db
+from app.repositories.version_repository import get_python_version, get_flask_version, get_postgresql_version
+from app import get_db
 
 def get_stack_versions():
     db = get_db()
