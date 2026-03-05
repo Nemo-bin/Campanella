@@ -1,6 +1,7 @@
 import sys
 import flask
 import psycopg2
+from sqlalchemy import text
 
 def get_python_version():
     return sys.version.split()[0]
@@ -8,7 +9,7 @@ def get_python_version():
 def get_flask_version():
     return flask.__version__
 
-def get_postgresql_version(conn):
-    with conn.cursor() as cur:
-        cur.execute("SELECT version();")
-        return cur.fetchone()[0]
+def get_postgresql_version(db):
+    result = db.execute(text("SELECT version();"))
+    version_str = result.scalar()
+    return version_str

@@ -1,10 +1,13 @@
 from flask import Flask, g
 from flask_cors import CORS
 from app.infrastructure.db.session import SessionLocal
+from app.infrastructure.db import init_db
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
+
+    init_db()
 
     @app.before_request
     def create_session():

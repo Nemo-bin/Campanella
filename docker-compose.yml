@@ -7,7 +7,6 @@ services:
       POSTGRES_DB: appdb
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/backend/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "5432:5432"
 
@@ -31,7 +30,7 @@ services:
       - ./src/backend/.env
     depends_on:
       - db
-    command: python -m db.utils.seed
+    command: python -m infrastructure.db.utils.seed
 
   frontend:
     build: ./src/frontend
