@@ -6,3 +6,4 @@ gunicorn
 pytest
 pytest-mock
 pytest-cov
+sqlalchemy
