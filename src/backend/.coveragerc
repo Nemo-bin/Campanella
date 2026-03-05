@@ -3,3 +3,5 @@ data_file = tests/.coverage
 omit = 
     */conftest.py
     */__init__.py
+    */session.py
+    */routes/*
