@@ -12,7 +12,7 @@ class UserService:
 
     def login_user(self, email: str, password: str):
         user = self.user_repo.get_user_by_email(email)
-        if not user or not verify_password(password, user.hashed_password):
+        if not user or not verify_password(password, user.password_hash):
             raise ValueError("Invalid email or password")
 
         user.last_login = func.now()
