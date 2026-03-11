@@ -1,20 +1,19 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
+import { getVersions } from "./services/api";
 
 export default function App() {
+  const [versions, setVersions] = useState<{python?: string; flask?: string; postgresql?: string}>({});
+
+  useEffect(() => {
+    getVersions().then(data => setVersions(data));
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ padding: 40 }}>
+      <Text>Python: {versions.python}</Text>
+      <Text>Flask: {versions.flask}</Text>
+      <Text>PostgreSQL: {versions.postgresql}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
