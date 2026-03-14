@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from app.services.user_service import UserService
 from app.repositories.user_repository import UserRepository
+from app.middleware.jwt_token import AuthMiddleware
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -20,7 +21,11 @@ def register_user():
             password=data["password"],
             username=data["username"]
         )
-        return jsonify(user.to_dict()), 201
+        token = AuthMiddleware.create_jwt(user.id, expires_hours=2)
+        return jsonify({
+            "user": user.to_dict(),
+            "access_token": token
+        }), 201
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -40,7 +45,11 @@ def login_user():
             email=data["email"],
             password=data["password"]
         )
-        return jsonify(user.to_dict()), 200
+        token = AuthMiddleware.create_jwt(user.id)
+        return jsonify({
+            "user": user.to_dict(),
+            "access_token": token
+        }), 200
     
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
