@@ -1,6 +1,5 @@
 import sys
 import flask
-import psycopg2
 from sqlalchemy import text
 
 def get_python_version():
