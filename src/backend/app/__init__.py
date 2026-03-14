@@ -1,11 +1,18 @@
 from flask import Flask, g
 from flask_cors import CORS
+import os
 from app.infrastructure.db.session import SessionLocal
 from app.infrastructure.db import init_db
+from backend.app.middleware.jwt_token import AuthMiddleware
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
+
+    jwt_secret = os.environ.get("JWT_SECRET")
+    if not jwt_secret:
+        raise RuntimeError("JWT_SECRET not set")
+    AuthMiddleware.init(jwt_secret)
 
     init_db()
 
