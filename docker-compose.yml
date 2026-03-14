@@ -32,14 +32,5 @@ services:
       - db
     command: python -m infrastructure.db.utils.seed
 
-  frontend:
-    build: ./src/frontend
-    volumes:
-      - ./src/frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:5173"
-    command: npm run dev
-
 volumes:
   postgres_data:
