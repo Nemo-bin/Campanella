@@ -90,3 +90,50 @@ def test_get_user_by_id(user_repo):
     assert fetched_user is not None
     assert fetched_user.id == user.id
     assert fetched_user.email == email
+
+def test_update_user(user_repo, test_db):
+    email = "update@test.com"
+    password_hash = hash_password("pass123")
+    username = "updateuser"
+
+    user = user_repo.create_user(
+        email=email,
+        password_hash=password_hash,
+        username=username
+    )
+
+    updated_user = user_repo.update(user.id, {
+        "email": "new@test.com",
+        "username": "newusername"
+    })
+
+    test_db.commit()
+
+    assert updated_user.email == "new@test.com"
+    assert updated_user.username == "newusername"
+
+    fetched_user = user_repo.get_user_by_id(user.id)
+
+    assert fetched_user is not None
+    assert fetched_user.email == "new@test.com"
+    assert fetched_user.username == "newusername"
+
+def test_update_user_single_field(user_repo, test_db):
+    user = user_repo.create_user(
+        email="single@test.com",
+        password_hash=hash_password("pass123"),
+        username="singleuser"
+    )
+
+    updated_user = user_repo.update(user.id, {"email": "changed@test.com"})
+
+    test_db.commit()
+
+    assert updated_user.email == "changed@test.com"
+    assert updated_user.username == "singleuser"
+
+def test_update_user_not_found(user_repo):
+    with pytest.raises(ValueError) as excinfo:
+        user_repo.update(999, {"email": "new@test.com"})
+
+    assert "User not found" in str(excinfo.value)

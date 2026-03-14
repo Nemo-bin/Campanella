@@ -20,3 +20,8 @@ class UserService:
         self.user_repo.db.refresh(user)
 
         return user
+    
+    def update_user(self, user_id: int, fields: dict):
+        user = self.user_repo.update(user_id, fields)
+        self.user_repo.db.commit()
+        return user

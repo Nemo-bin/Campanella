@@ -20,12 +20,7 @@ def register_user():
             password=data["password"],
             username=data["username"]
         )
-        return jsonify({
-            "id": user.id,
-            "email": user.email,
-            "username": user.username,
-            "created_at": user.created_at.isoformat(),
-        }), 201
+        return jsonify(user.to_dict()), 201
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -45,11 +40,24 @@ def login_user():
             email=data["email"],
             password=data["password"]
         )
-        return jsonify({
-            "id": user.id,
-            "email": user.email,
-            "username": user.username,
-        }), 200
+        return jsonify(user.to_dict()), 200
     
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+@users_bp.route("/update", methods=["POST"])
+def update_user():
+    data = request.json
+    repo = UserRepository(g.db)
+    service = UserService(repo)
+
+    required_fields = ["user_id", "fields"]
+    if not data or not all(k in data for k in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
+    
+    try:
+        user = service.update_user(data["user_id"], data["fields"])
+        return jsonify(user.to_dict()), 200
+
     except ValueError as e:
         return jsonify({"error": str(e)}), 401

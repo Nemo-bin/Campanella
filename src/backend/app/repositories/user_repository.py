@@ -1,5 +1,5 @@
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import func
+from sqlalchemy import select
 from app.infrastructure.db.models.user_model import UserModel
 
 class UserRepository:
@@ -11,7 +11,6 @@ class UserRepository:
             email=email,
             password_hash=password_hash,
             username=username,
-            
         )
 
         try:
@@ -24,10 +23,23 @@ class UserRepository:
             raise ValueError("User with this email or username already exists")
         
     def get_user_by_id(self, id: int) -> UserModel | None:
-        return self.db.query(UserModel).filter(UserModel.id == id).first()
+        return self.db.get(UserModel, id)
     
     def get_user_by_email(self, email: str) -> UserModel | None:
-        return self.db.query(UserModel).filter(UserModel.email == email).first()
+        stmt = select(UserModel).where(UserModel.email == email)
+        return self.db.execute(stmt).scalar_one_or_none()
     
     def get_user_by_username(self, username: str) -> UserModel | None:
-        return self.db.query(UserModel).filter(UserModel.username == username).first()
+        stmt = select(UserModel).where(UserModel.username == username)
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def update(self, id: int, fields: dict) -> UserModel | None:
+        user = self.db.get(UserModel, id)
+
+        if user is None:
+            raise ValueError("User not found")
+        
+        for key, value in fields.items():
+            setattr(user, key, value)
+
+        return user

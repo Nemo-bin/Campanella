@@ -92,3 +92,55 @@ def test_login_user_nonexistent_email_raises(user_service):
     with pytest.raises(ValueError) as excinfo:
         user_service.login_user(email="noone@example.com", password="pass123")
     assert "Invalid email or password" in str(excinfo.value)
+
+def test_update_user_success(user_service):
+    email = "update@example.com"
+    password = "password123"
+    username = "updateuser"
+
+    # Create user
+    user = user_service.register_user(email=email, password=password, username=username)
+
+    # Update fields
+    updated_user = user_service.update_user(user.id, {
+        "email": "updated@example.com",
+        "username": "updateduser"
+    })
+
+    assert updated_user.email == "updated@example.com"
+    assert updated_user.username == "updateduser"
+
+def test_update_user_single_field(user_service):
+    user = user_service.register_user(
+        email="single@example.com",
+        password="password123",
+        username="singleuser"
+    )
+
+    updated_user = user_service.update_user(user.id, {
+        "username": "newusername"
+    })
+
+    assert updated_user.email == "single@example.com"
+    assert updated_user.username == "newusername"
+
+def test_update_user_not_found(user_service):
+    with pytest.raises(ValueError) as excinfo:
+        user_service.update_user(999, {"username": "doesntmatter"})
+
+    assert "User not found" in str(excinfo.value)
+
+def test_update_user_password(user_service):
+    user = user_service.register_user(
+        email="passupdate@example.com",
+        password="oldpassword",
+        username="passuser"
+    )
+
+    new_hash = hash_password("newpassword")
+
+    updated_user = user_service.update_user(user.id, {
+        "password_hash": new_hash
+    })
+
+    assert verify_password("newpassword", updated_user.password_hash)
