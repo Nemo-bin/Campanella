@@ -4,8 +4,11 @@ class RefreshTokenRepository:
         def __init__(self, db):
             self.db = db
 
-        def create_refresh_token(self, jti: str):
-            token = RefreshTokenModel(jti=jti)
+        def create_refresh_token(self, jti: str, user_id: int):
+            token = RefreshTokenModel(
+                 jti=jti,
+                 user_id=user_id
+            )
             self.db.add(token)
             self.db.commit()
             self.db.refresh(token)

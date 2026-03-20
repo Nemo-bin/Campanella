@@ -26,6 +26,7 @@ def register_user():
         )
         access_token = AuthMiddleware.create_jwt(user.id)
         refresh_token = AuthMiddleware.create_refresh_token(user.id)
+        refresh_token_repo.create_refresh_token(jti=refresh_token["jti"], user_id=user.id)
         return jsonify({
             "user": user.to_dict(),
             "access_token": access_token,
@@ -52,6 +53,7 @@ def login_user():
         )
         access_token = AuthMiddleware.create_jwt(user.id)
         refresh_token = AuthMiddleware.create_refresh_token(user.id)
+        refresh_token_repo.create_refresh_token(jti=refresh_token["jti"], user_id=user.id)
         return jsonify({
             "user": user.to_dict(),
             "access_token": access_token,
