@@ -70,14 +70,16 @@ def login_user():
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh_token():
     data = request.json
-    refresh_token = data.get("refresh_token")
     user_repo = UserRepository(g.db)
     refresh_token_repo = RefreshTokenRepository(g.db)
     service = AuthService(user_repo, refresh_token_repo)
 
-    if not refresh_token:
-        return jsonify({"error": "Missing refresh token"}), 400
-    
+    required_fields = ["refresh_token", "user_id"]
+    if not data or not all(k in data for k in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
+
+    refresh_token = data.get("refresh_token")
+
     try:
         user_id = data.get("user_id")
         decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
@@ -97,21 +99,33 @@ def refresh_token():
 @AuthMiddleware.required
 def logout_user(current_user_id):
     data = request.json
-    refresh_token = data.get("refresh_token")
     user_repo = UserRepository(g.db)
     refresh_token_repo = RefreshTokenRepository(g.db)
     service = AuthService(user_repo, refresh_token_repo)
 
-    if not refresh_token:
-        return jsonify({"error": "Missing refresh token"}), 400
-    
+    if not data or "refresh_token" not in data:
+        return jsonify({"error": "Missing refresh_token"}), 400
+
+    refresh_token = data.get("refresh_token")
+
     try:
-        decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
-        jti = decoded_refresh_token.get("jti")
+        decoded = jwt.decode(
+            refresh_token,
+            AuthMiddleware._refresh_secret,
+            algorithms=["HS256"]
+        )
+
+        jti = decoded.get("jti")
+        token_user_id = decoded.get("user_id")
+
+        if token_user_id != current_user_id:
+            return jsonify({"error": "Token does not belong to user"}), 403
+
         service.revoke_refresh_token(jti)
+
         return jsonify({"message": "Logged out successfully"}), 200
 
-    except jwt.ExpiredSignatureError as e:
-        return jsonify({"error": str(e)}), 401
-    except (jwt.InvalidAlgorithmError, jwt.DecodeError) as e:
-        return jsonify({"error": str(e)}), 401
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Refresh token expired"}), 401
+    except (jwt.InvalidAlgorithmError, jwt.DecodeError):
+        return jsonify({"error": "Invalid refresh token"}), 401

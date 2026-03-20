@@ -22,3 +22,9 @@ class RefreshTokenRepository:
             if token:
                 self.db.delete(token)
                 self.db.commit()
+
+        def revoke_all_for_user(self, user_id: int):
+            tokens = self.db.query(RefreshTokenModel).filter_by(user_id=user_id).all()
+            for token in tokens:
+                self.db.delete(token)
+            self.db.commit()

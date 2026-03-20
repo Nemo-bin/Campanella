@@ -27,5 +27,5 @@ class AuthService:
         return self.refresh_token_repo.get_refresh_token(jti) is not None
     
     def revoke_refresh_token(self, jti: str):
-        self.refresh_token_repo.delete_refresh_token(jti)
+        self.refresh_token_repo.revoke_refresh_token(jti)
         self.refresh_token_repo.db.commit()
