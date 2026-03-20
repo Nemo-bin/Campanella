@@ -3,7 +3,7 @@ import jwt
 from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
-from backend.app.middleware.auth_middleware import AuthMiddleware
+from app.middleware.auth_middleware import AuthMiddleware
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -26,7 +26,9 @@ def register_user():
         )
         access_token = AuthMiddleware.create_jwt(user.id)
         refresh_token = AuthMiddleware.create_refresh_token(user.id)
-        refresh_token_repo.create_refresh_token(jti=refresh_token["jti"], user_id=user.id)
+        decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        jti = decoded_refresh_token.get("jti")
+        refresh_token_repo.create_refresh_token(jti=jti, user_id=user.id)
         return jsonify({
             "user": user.to_dict(),
             "access_token": access_token,
@@ -53,7 +55,9 @@ def login_user():
         )
         access_token = AuthMiddleware.create_jwt(user.id)
         refresh_token = AuthMiddleware.create_refresh_token(user.id)
-        refresh_token_repo.create_refresh_token(jti=refresh_token["jti"], user_id=user.id)
+        decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        jti = decoded_refresh_token.get("jti")
+        refresh_token_repo.create_refresh_token(jti=jti, user_id=user.id)
         return jsonify({
             "user": user.to_dict(),
             "access_token": access_token,
@@ -64,10 +68,9 @@ def login_user():
         return jsonify({"error": str(e)}), 401
     
 @auth_bp.route("/refresh", methods=["POST"])
-@AuthMiddleware.required
-def refresh_token(current_user_id):
+def refresh_token():
     data = request.json
-    refresh_token = data["refresh_token"]
+    refresh_token = data.get("refresh_token")
     user_repo = UserRepository(g.db)
     refresh_token_repo = RefreshTokenRepository(g.db)
     service = AuthService(user_repo, refresh_token_repo)
@@ -76,10 +79,10 @@ def refresh_token(current_user_id):
         return jsonify({"error": "Missing refresh token"}), 400
     
     try:
-        data = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
         user_id = data.get("user_id")
-        
-        if not service.is_valid(refresh_token["jti"]):  
+        decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        jti = decoded_refresh_token.get("jti")
+        if not service.is_valid(jti):  
             return jsonify({"error": "Invalid refresh token"}), 401
 
         new_access_token = AuthMiddleware.create_jwt(user_id)
@@ -87,14 +90,14 @@ def refresh_token(current_user_id):
 
     except jwt.ExpiredSignatureError as e:
         return jsonify({"error": str(e)}), 401
-    except (jwt.InvalidAlgorithmError, jwt.DecodeError):
+    except (jwt.InvalidAlgorithmError, jwt.DecodeError) as e:
         return jsonify({"error": str(e)}), 401
     
 @auth_bp.route("/logout", methods=["POST"])
 @AuthMiddleware.required
 def logout_user(current_user_id):
     data = request.json
-    refresh_token = data["refresh_token"]
+    refresh_token = data.get("refresh_token")
     user_repo = UserRepository(g.db)
     refresh_token_repo = RefreshTokenRepository(g.db)
     service = AuthService(user_repo, refresh_token_repo)
@@ -103,12 +106,12 @@ def logout_user(current_user_id):
         return jsonify({"error": "Missing refresh token"}), 400
     
     try:
-        data = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
-        jti = refresh_token["jti"]
-        service.refresh_token_repo.revoke_refresh_token(jti)
+        decoded_refresh_token = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        jti = decoded_refresh_token.get("jti")
+        service.revoke_refresh_token(jti)
         return jsonify({"message": "Logged out successfully"}), 200
 
     except jwt.ExpiredSignatureError as e:
         return jsonify({"error": str(e)}), 401
-    except (jwt.InvalidAlgorithmError, jwt.DecodeError):
+    except (jwt.InvalidAlgorithmError, jwt.DecodeError) as e:
         return jsonify({"error": str(e)}), 401

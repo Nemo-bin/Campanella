@@ -1,7 +1,7 @@
 from sqlalchemy.sql import func
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
-from backend.app.utils.security_utils import verify_password, hash_password
+from app.utils.security_utils import verify_password, hash_password
 
 class AuthService:
     def __init__(self, user_repo: UserRepository, refresh_token_repo: RefreshTokenRepository):
@@ -25,3 +25,7 @@ class AuthService:
     
     def is_valid(self, jti: str) -> bool:
         return self.refresh_token_repo.get_refresh_token(jti) is not None
+    
+    def revoke_refresh_token(self, jti: str):
+        self.refresh_token_repo.delete_refresh_token(jti)
+        self.refresh_token_repo.db.commit()
