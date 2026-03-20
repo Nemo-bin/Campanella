@@ -3,6 +3,7 @@ from functools import wraps
 from flask import request
 import datetime
 import os
+import uuid
 
 class AuthMiddleware:
     _secret = None
@@ -46,6 +47,18 @@ class AuthMiddleware:
         data = {
             "user_id": user_id,
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=expires_hours),
+            "iat": datetime.datetime.utcnow()
+        }
+
+        token = jwt.encode(data, cls._secret, algorithm="HS256")
+        return token
+    
+    @classmethod
+    def create_refresh_token(cls, user_id: int, expires_days: int = 7):
+        data = {
+            "user_id": user_id,
+            "id": str(uuid.uuid4()),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=expires_days),
             "iat": datetime.datetime.utcnow()
         }
 
