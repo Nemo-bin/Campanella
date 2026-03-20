@@ -7,10 +7,12 @@ import uuid
 
 class AuthMiddleware:
     _secret = None
+    _refresh_secret = None
 
     @classmethod
-    def init(cls, secret_key: str):
+    def init(cls, secret_key: str, refresh_secret_key: str = None):
         cls._secret = secret_key
+        cls._refresh_secret = refresh_secret_key
 
     @classmethod
     def required(cls, f):
@@ -57,10 +59,10 @@ class AuthMiddleware:
     def create_refresh_token(cls, user_id: int, expires_days: int = 7):
         data = {
             "user_id": user_id,
-            "id": str(uuid.uuid4()),
+            "jti": str(uuid.uuid4()),
             "exp": datetime.datetime.utcnow() + datetime.timedelta(days=expires_days),
             "iat": datetime.datetime.utcnow()
         }
 
-        token = jwt.encode(data, cls._secret, algorithm="HS256")
+        token = jwt.encode(data, cls._refresh_secret, algorithm="HS256")
         return token

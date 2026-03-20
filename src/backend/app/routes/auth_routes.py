@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+import jwt
 from app.services.user_service import UserService
 from app.repositories.user_repository import UserRepository
 from app.middleware.jwt_token import AuthMiddleware
@@ -21,12 +22,13 @@ def register_user():
             password=data["password"],
             username=data["username"]
         )
-        token = AuthMiddleware.create_jwt(user.id, expires_hours=2)
+        access_token = AuthMiddleware.create_jwt(user.id)
+        refresh_token = AuthMiddleware.create_refresh_token(user.id)
         return jsonify({
             "user": user.to_dict(),
-            "access_token": token
+            "access_token": access_token,
+            "refresh_token": refresh_token
         }), 201
-
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     
@@ -42,14 +44,37 @@ def login_user():
 
     try:
         user = service.login_user(
-            email=data["email"],
+            email= data["email"],
             password=data["password"]
         )
-        token = AuthMiddleware.create_jwt(user.id)
+        access_token = AuthMiddleware.create_jwt(user.id)
+        refresh_token = AuthMiddleware.create_refresh_token(user.id)
         return jsonify({
             "user": user.to_dict(),
-            "access_token": token
+            "access_token": access_token,
+            "refresh_token": refresh_token
         }), 200
     
     except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+    
+@auth_bp.route("/refresh", methods=["POST"])
+@AuthMiddleware.required
+def refresh_token(current_user_id):
+    data = request.json
+    refresh_token = data["refresh_token"]
+
+    if not refresh_token:
+        return jsonify({"error": "Missing refresh token"}), 400
+    
+    try:
+        data = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        user_id = data.get("user_id")
+        # Optional: check if the token jti exists in your DB or cache
+        new_access_token = AuthMiddleware.create_jwt(user_id)
+        return jsonify({"access_token": new_access_token})
+
+    except jwt.ExpiredSignatureError as e:
+        return jsonify({"error": str(e)}), 401
+    except (jwt.InvalidAlgorithmError, jwt.DecodeError):
         return jsonify({"error": str(e)}), 401

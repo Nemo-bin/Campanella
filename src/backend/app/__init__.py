@@ -12,7 +12,10 @@ def create_app():
     jwt_secret = os.environ.get("JWT_SECRET")
     if not jwt_secret:
         raise RuntimeError("JWT_SECRET not set")
-    AuthMiddleware.init(jwt_secret)
+    refresh_secret = os.environ.get("JWT_REFRESH_SECRET")
+    if not refresh_secret:
+        raise RuntimeError("JWT_REFRESH_SECRET not set")
+    AuthMiddleware.init(jwt_secret, refresh_secret)
 
     init_db()
 
