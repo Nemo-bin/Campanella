@@ -37,7 +37,7 @@ def register_user():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route("/login", methods=["GET"])
 def login_user():
     data = request.json
     user_repo = UserRepository(g.db)
