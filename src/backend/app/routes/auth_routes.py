@@ -87,3 +87,26 @@ def refresh_token(current_user_id):
         return jsonify({"error": str(e)}), 401
     except (jwt.InvalidAlgorithmError, jwt.DecodeError):
         return jsonify({"error": str(e)}), 401
+    
+@auth_bp.route("/logout", methods=["POST"])
+@AuthMiddleware.required
+def logout_user(current_user_id):
+    data = request.json
+    refresh_token = data["refresh_token"]
+    user_repo = UserRepository(g.db)
+    refresh_token_repo = RefreshTokenRepository(g.db)
+    service = AuthService(user_repo, refresh_token_repo)
+
+    if not refresh_token:
+        return jsonify({"error": "Missing refresh token"}), 400
+    
+    try:
+        data = jwt.decode(refresh_token, AuthMiddleware._refresh_secret, algorithms=["HS256"])
+        jti = refresh_token["jti"]
+        service.refresh_token_repo.revoke_refresh_token(jti)
+        return jsonify({"message": "Logged out successfully"}), 200
+
+    except jwt.ExpiredSignatureError as e:
+        return jsonify({"error": str(e)}), 401
+    except (jwt.InvalidAlgorithmError, jwt.DecodeError):
+        return jsonify({"error": str(e)}), 401
