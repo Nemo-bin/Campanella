@@ -1,11 +1,16 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import func
+
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.models.user_model import UserModel
+from app.infrastructure.db.models.refresh_token_model import RefreshTokenModel
 from app.repositories.user_repository import UserRepository
+from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.services.auth_service import AuthService
-from app.utils.security import hash_password, verify_password
+from backend.app.utils.security_utils import hash_password, verify_password
+import uuid
 
 # -------------------------------
 # 1) Test DB setup (in-memory SQLite)
@@ -27,11 +32,15 @@ def user_repo(test_db):
     return UserRepository(test_db)
 
 @pytest.fixture
-def auth_service(user_repo):
-    return AuthService(user_repo)
+def refresh_token_repo(test_db):
+    return RefreshTokenRepository(test_db)
+
+@pytest.fixture
+def auth_service(user_repo, refresh_token_repo):
+    return AuthService(user_repo, refresh_token_repo)
 
 # -------------------------------
-# 2) Tests
+# 2) User tests
 # -------------------------------
 
 def test_register_user_creates_user(auth_service, test_db):
@@ -92,3 +101,18 @@ def test_login_user_nonexistent_email_raises(auth_service):
     with pytest.raises(ValueError) as excinfo:
         auth_service.login_user(email="noone@example.com", password="pass123")
     assert "Invalid email or password" in str(excinfo.value)
+
+# -------------------------------
+# 3) Refresh token / is_valid tests
+# -------------------------------
+
+def test_is_valid_returns_true_for_existing_token(auth_service, refresh_token_repo):
+    # Generate a fake refresh token jti
+    jti = str(uuid.uuid4())
+    refresh_token_repo.create_refresh_token(jti=jti, user_id=1)
+
+    assert auth_service.is_valid(jti) is True
+
+def test_is_valid_returns_false_for_nonexistent_token(auth_service):
+    fake_jti = str(uuid.uuid4())
+    assert auth_service.is_valid(fake_jti) is False

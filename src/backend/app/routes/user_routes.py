@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from app.services.user_service import UserService
 from app.repositories.user_repository import UserRepository
-from app.middleware.jwt_token import AuthMiddleware
+from backend.app.middleware.auth_middleware import AuthMiddleware
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 

@@ -1,7 +1,7 @@
 from sqlalchemy.sql import func
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
-from app.utils.security import verify_password, hash_password
+from backend.app.utils.security_utils import verify_password, hash_password
 
 class AuthService:
     def __init__(self, user_repo: UserRepository, refresh_token_repo: RefreshTokenRepository):

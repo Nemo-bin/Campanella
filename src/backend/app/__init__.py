@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 from app.infrastructure.db.session import SessionLocal
 from app.infrastructure.db import init_db
-from app.middleware.jwt_token import AuthMiddleware
+from backend.app.middleware.auth_middleware import AuthMiddleware
 
 def create_app():
     app = Flask(__name__)

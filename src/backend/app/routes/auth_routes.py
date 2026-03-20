@@ -3,7 +3,7 @@ import jwt
 from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
-from app.middleware.jwt_token import AuthMiddleware
+from backend.app.middleware.auth_middleware import AuthMiddleware
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 

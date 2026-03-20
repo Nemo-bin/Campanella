@@ -4,9 +4,10 @@ from sqlalchemy.orm import sessionmaker
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.models.user_model import UserModel
 from app.repositories.user_repository import UserRepository
+from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.services.user_service import UserService
 from app.services.auth_service import AuthService
-from app.utils.security import hash_password, verify_password
+from backend.app.utils.security_utils import hash_password, verify_password
 
 # -------------------------------
 # 1) Test DB setup (in-memory SQLite)
@@ -28,12 +29,16 @@ def user_repo(test_db):
     return UserRepository(test_db)
 
 @pytest.fixture
+def refresh_token_repo(test_db):
+    return RefreshTokenRepository(test_db)
+
+@pytest.fixture
 def user_service(user_repo):
     return UserService(user_repo)
 
 @pytest.fixture
-def auth_service(user_repo):
-    return AuthService(user_repo)
+def auth_service(user_repo, refresh_token_repo):
+    return AuthService(user_repo, refresh_token_repo)
 
 # -------------------------------
 # 2) Tests
