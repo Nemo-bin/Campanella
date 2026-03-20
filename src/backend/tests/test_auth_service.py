@@ -9,7 +9,7 @@ from app.infrastructure.db.models.refresh_token_model import RefreshTokenModel
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.services.auth_service import AuthService
-from backend.app.utils.security_utils import hash_password, verify_password
+from app.utils.security_utils import hash_password, verify_password
 import uuid
 
 # -------------------------------

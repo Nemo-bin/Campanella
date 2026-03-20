@@ -2,7 +2,7 @@ import pytest
 import jwt
 import datetime
 from flask import Flask, request
-from backend.app.middleware.auth_middleware import AuthMiddleware
+from app.middleware.auth_middleware import AuthMiddleware
 from unittest.mock import patch
 
 # -------------------------------

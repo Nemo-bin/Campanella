@@ -7,7 +7,7 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.services.user_service import UserService
 from app.services.auth_service import AuthService
-from backend.app.utils.security_utils import hash_password, verify_password
+from app.utils.security_utils import hash_password, verify_password
 
 # -------------------------------
 # 1) Test DB setup (in-memory SQLite)
