@@ -78,3 +78,22 @@ def test_update_user_password(auth_service, user_service):
     })
 
     assert verify_password("newpassword", updated_user.password_hash)
+
+def test_delete_user(auth_service, user_service, user_repo):
+    user = auth_service.register_user(
+        email="delete_service@example.com",
+        password="password123",
+        username="deleteuser"
+    )
+
+    user_service.delete_user(user.id)
+
+    deleted_user = user_repo.get_user_by_id(user.id)
+    assert deleted_user is None
+
+
+def test_delete_user_not_found(user_service):
+    with pytest.raises(ValueError) as excinfo:
+        user_service.delete_user(999)
+
+    assert "User not found" in str(excinfo.value)

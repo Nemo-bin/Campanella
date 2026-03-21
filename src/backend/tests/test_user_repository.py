@@ -137,3 +137,26 @@ def test_update_user_not_found(user_repo):
         user_repo.update(999, {"email": "new@test.com"})
 
     assert "User not found" in str(excinfo.value)
+
+def test_delete_user(user_repo):
+    email = "delete@test.com"
+    password_hash = hash_password("pass123")
+    username = "deleteuser"
+
+    user = user_repo.create_user(
+        email=email,
+        password_hash=password_hash,
+        username=username
+    )
+
+    user_repo.delete(user.id)
+
+    deleted_user = user_repo.get_user_by_id(user.id)
+    assert deleted_user is None
+
+
+def test_delete_user_not_found(user_repo):
+    with pytest.raises(ValueError) as excinfo:
+        user_repo.delete(999)
+
+    assert "User not found" in str(excinfo.value)

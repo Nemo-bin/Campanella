@@ -9,3 +9,6 @@ class UserService:
         user = self.user_repo.update(user_id, fields)
         self.user_repo.db.commit()
         return user
+    
+    def delete_user(self, user_id: int):
+        self.user_repo.delete(user_id)

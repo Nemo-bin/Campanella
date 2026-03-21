@@ -22,3 +22,16 @@ def update_user(current_user_id):
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
+    
+@users_bp.route("/delete", methods=["POST"])
+@AuthMiddleware.required
+def delete_user(current_user_id):
+    repo = UserRepository(g.db)
+    service = UserService(repo)
+
+    try:
+        service.delete_user(current_user_id)
+        return jsonify({"message": "User deleted successfully"}), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
