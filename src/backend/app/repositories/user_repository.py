@@ -43,3 +43,12 @@ class UserRepository:
             setattr(user, key, value)
 
         return user
+
+    def delete(self, id: int) -> None:
+        user = self.db.get(UserModel, id)
+
+        if user is None:
+            raise ValueError("User not found")
+        
+        self.db.delete(user)
+        self.db.commit()
