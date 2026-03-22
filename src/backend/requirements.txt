@@ -1,7 +1,7 @@
 psycopg2-binary
 python-dotenv
-flask
-flask-cors
+fastapi
+uvicorn[standard]
 gunicorn
 pytest
 pytest-mock

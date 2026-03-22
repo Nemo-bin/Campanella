@@ -19,8 +19,8 @@ services:
     depends_on:
       - db
     ports:
-      - "5000:5000"
-    command: flask run --host=0.0.0.0 --port=5000 --reload
+      - "8000:8000"
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
   seed:
     build: ./src/backend

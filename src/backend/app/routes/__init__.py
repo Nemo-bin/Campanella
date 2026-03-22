@@ -1,9 +1,9 @@
-from .version_routes import version_bp
-from .auth_routes import auth_bp
-from .user_routes import users_bp
+from .auth_routes import router as auth_router
+from .user_routes import router as user_router
+from .health_routes import router as health_router
 
-blueprints = [
-    version_bp,
-    auth_bp,
-    users_bp
+routers = [
+    health_router,
+    auth_router,
+    user_router
 ]

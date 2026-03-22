@@ -1,9 +1,17 @@
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.session import engine
-
-from app.infrastructure.db.models import user_model
-from app.infrastructure.db.models import refresh_token_model
-
+from sqlalchemy.orm import Session
+from .session import SessionLocal
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+__all__ = ["get_db", "init_db"]
