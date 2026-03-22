@@ -2,6 +2,7 @@ psycopg2-binary
 python-dotenv
 fastapi
 uvicorn[standard]
+httpx
 gunicorn
 pytest
 pytest-mock
