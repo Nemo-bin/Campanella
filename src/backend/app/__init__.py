@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.infrastructure.db import init_db
-from app.middleware.auth_middleware import AuthMiddleware
 from app.routes import routers
+from app.utils.jwt_utils import JWTManager
 
 
 def create_app() -> FastAPI:
@@ -18,7 +18,10 @@ def create_app() -> FastAPI:
     if not refresh_secret:
         raise RuntimeError("JWT_REFRESH_SECRET not set")
 
-    AuthMiddleware.init(jwt_secret, refresh_secret)
+    JWTManager.init(
+        secret_key=jwt_secret,
+        refresh_secret_key=refresh_secret
+    )
 
     init_db()
 

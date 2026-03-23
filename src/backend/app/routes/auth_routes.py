@@ -1,16 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import jwt
 
-from app.services.auth_service import AuthService
-from app.repositories.user_repository import UserRepository
-from app.repositories.refresh_token_repository import RefreshTokenRepository
-from app.middleware.auth_middleware import AuthMiddleware
-
+from app.utils.jwt_utils import JWTManager
 from app.dependencies.services import get_auth_service
-
-from app.dependencies.db import get_db
+from app.dependencies.auth import get_current_user_id
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -49,12 +43,12 @@ async def register_user(
             username=data.username
         )
 
-        access_token = AuthMiddleware.create_jwt(user.id)
-        refresh_token = AuthMiddleware.create_refresh_token(user.id)
+        access_token = JWTManager.create_jwt(user.id)
+        refresh_token = JWTManager.create_refresh_token(user.id)
 
         decoded = jwt.decode(
             refresh_token,
-            AuthMiddleware._refresh_secret,
+            JWTManager._refresh_secret,
             algorithms=["HS256"]
         )
 
@@ -83,12 +77,12 @@ async def login_user(
             password=data.password
         )
 
-        access_token = AuthMiddleware.create_jwt(user.id)
-        refresh_token = AuthMiddleware.create_refresh_token(user.id)
+        access_token = JWTManager.create_jwt(user.id)
+        refresh_token = JWTManager.create_refresh_token(user.id)
 
         decoded = jwt.decode(
             refresh_token,
-            AuthMiddleware._refresh_secret,
+            JWTManager._refresh_secret,
             algorithms=["HS256"]
         )
 
@@ -114,7 +108,7 @@ async def refresh_token(
     try:
         decoded = jwt.decode(
             data.refresh_token,
-            AuthMiddleware._refresh_secret,
+            JWTManager._refresh_secret,
             algorithms=["HS256"]
         )
 
@@ -123,7 +117,7 @@ async def refresh_token(
         if not auth_service.is_valid(jti):
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-        new_access_token = AuthMiddleware.create_jwt(data.user_id)
+        new_access_token = JWTManager.create_jwt(data.user_id)
 
         return {"access_token": new_access_token}
 
@@ -137,14 +131,13 @@ async def refresh_token(
 @router.post("/logout")
 async def logout_user(
     data: LogoutRequest,
-    current_user_id: int = Depends(AuthMiddleware.required),
+    current_user_id: int = Depends(get_current_user_id),
     auth_service = Depends(get_auth_service)
 ):
-
     try:
         decoded = jwt.decode(
             data.refresh_token,
-            AuthMiddleware._refresh_secret,
+            JWTManager._refresh_secret,
             algorithms=["HS256"]
         )
 

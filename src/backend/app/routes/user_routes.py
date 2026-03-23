@@ -1,13 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.services.user_service import UserService
-from app.repositories.user_repository import UserRepository
-from app.middleware.auth_middleware import AuthMiddleware
 
-from app.dependencies.db import get_db
 from app.dependencies.services import get_user_service
+from app.dependencies.auth import get_current_user_id
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -20,7 +17,7 @@ class UpdateUserRequest(BaseModel):
 @router.post("/update")
 def update_user(
     data: UpdateUserRequest,
-    current_user_id: int = Depends(AuthMiddleware.required),
+    current_user_id: int = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service)
 ):
 
@@ -34,7 +31,7 @@ def update_user(
 
 @router.post("/delete")
 def delete_user(
-    current_user_id: int = Depends(AuthMiddleware.required),
+    current_user_id: int = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service)
 ):
 
