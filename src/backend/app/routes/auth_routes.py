@@ -7,7 +7,10 @@ from app.services.auth_service import AuthService
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.middleware.auth_middleware import AuthMiddleware
-from app.infrastructure.db import get_db
+
+from app.dependencies.services import get_auth_service
+
+from app.dependencies.db import get_db
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -34,14 +37,13 @@ class LogoutRequest(BaseModel):
 
 
 @router.post("/register", status_code=201)
-def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
-
-    user_repo = UserRepository(db)
-    refresh_repo = RefreshTokenRepository(db)
-    service = AuthService(user_repo, refresh_repo)
+async def register_user(
+    data: RegisterRequest, 
+    auth_service = Depends(get_auth_service)
+    ):
 
     try:
-        user = service.register_user(
+        user = auth_service.register_user(
             email=data.email,
             password=data.password,
             username=data.username
@@ -57,7 +59,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
         )
 
         jti = decoded.get("jti")
-        refresh_repo.create_refresh_token(jti=jti, user_id=user.id)
+        auth_service.save_refresh_token(jti=jti, user_id=user.id)
 
         return {
             "user": user.to_dict(),
@@ -70,14 +72,13 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login_user(data: LoginRequest, db: Session = Depends(get_db)):
-
-    user_repo = UserRepository(db)
-    refresh_repo = RefreshTokenRepository(db)
-    service = AuthService(user_repo, refresh_repo)
+async def login_user(
+    data: LoginRequest, 
+    auth_service = Depends(get_auth_service)
+    ):
 
     try:
-        user = service.login_user(
+        user = auth_service.login_user(
             email=data.email,
             password=data.password
         )
@@ -92,7 +93,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
         )
 
         jti = decoded.get("jti")
-        refresh_repo.create_refresh_token(jti=jti, user_id=user.id)
+        auth_service.save_refresh_token(jti=jti, user_id=user.id)
 
         return {
             "user": user.to_dict(),
@@ -105,11 +106,10 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh")
-def refresh_token(data: RefreshRequest, db: Session = Depends(get_db)):
-
-    user_repo = UserRepository(db)
-    refresh_repo = RefreshTokenRepository(db)
-    service = AuthService(user_repo, refresh_repo)
+async def refresh_token(
+    data: RefreshRequest, 
+    auth_service = Depends(get_auth_service)
+    ):
 
     try:
         decoded = jwt.decode(
@@ -120,7 +120,7 @@ def refresh_token(data: RefreshRequest, db: Session = Depends(get_db)):
 
         jti = decoded.get("jti")
 
-        if not service.is_valid(jti):
+        if not auth_service.is_valid(jti):
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
         new_access_token = AuthMiddleware.create_jwt(data.user_id)
@@ -135,15 +135,11 @@ def refresh_token(data: RefreshRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout")
-def logout_user(
+async def logout_user(
     data: LogoutRequest,
     current_user_id: int = Depends(AuthMiddleware.required),
-    db: Session = Depends(get_db)
+    auth_service = Depends(get_auth_service)
 ):
-
-    user_repo = UserRepository(db)
-    refresh_repo = RefreshTokenRepository(db)
-    service = AuthService(user_repo, refresh_repo)
 
     try:
         decoded = jwt.decode(
@@ -158,7 +154,7 @@ def logout_user(
         if token_user_id != current_user_id:
             raise HTTPException(status_code=403, detail="Token does not belong to user")
 
-        service.revoke_refresh_token(jti)
+        auth_service.revoke_refresh_token(jti)
 
         return {"message": "Logged out successfully"}
 

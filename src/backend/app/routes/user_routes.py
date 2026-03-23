@@ -5,7 +5,9 @@ from pydantic import BaseModel
 from app.services.user_service import UserService
 from app.repositories.user_repository import UserRepository
 from app.middleware.auth_middleware import AuthMiddleware
-from app.infrastructure.db import get_db
+
+from app.dependencies.db import get_db
+from app.dependencies.services import get_user_service
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -19,13 +21,11 @@ class UpdateUserRequest(BaseModel):
 def update_user(
     data: UpdateUserRequest,
     current_user_id: int = Depends(AuthMiddleware.required),
-    db: Session = Depends(get_db)
+    user_service: UserService = Depends(get_user_service)
 ):
-    repo = UserRepository(db)
-    service = UserService(repo)
 
     try:
-        user = service.update_user(current_user_id, data.fields)
+        user = user_service.update_user(current_user_id, data.fields)
         return user.to_dict()
 
     except ValueError as e:
@@ -35,13 +35,11 @@ def update_user(
 @router.post("/delete")
 def delete_user(
     current_user_id: int = Depends(AuthMiddleware.required),
-    db: Session = Depends(get_db)
+    user_service: UserService = Depends(get_user_service)
 ):
-    repo = UserRepository(db)
-    service = UserService(repo)
 
     try:
-        service.delete_user(current_user_id)
+        user_service.delete_user(current_user_id)
         return {"message": "User deleted successfully"}
 
     except ValueError as e:
