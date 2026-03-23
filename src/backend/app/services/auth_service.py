@@ -31,4 +31,4 @@ class AuthService:
         self.refresh_token_repo.db.commit()
 
     def save_refresh_token(self, jti: str, user_id: int):
-        self.refresh_token_repo(jti=jti, user=user_id)
+        self.refresh_token_repo.create_refresh_token(jti, user_id)

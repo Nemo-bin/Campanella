@@ -43,7 +43,7 @@ async def register_user(
             username=data.username
         )
 
-        access_token = JWTManager.create_jwt(user.id)
+        access_token = JWTManager.create_access_token(user.id)
         refresh_token = JWTManager.create_refresh_token(user.id)
 
         decoded = jwt.decode(
@@ -77,7 +77,7 @@ async def login_user(
             password=data.password
         )
 
-        access_token = JWTManager.create_jwt(user.id)
+        access_token = JWTManager.create_access_token(user.id)
         refresh_token = JWTManager.create_refresh_token(user.id)
 
         decoded = jwt.decode(
@@ -117,7 +117,7 @@ async def refresh_token(
         if not auth_service.is_valid(jti):
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-        new_access_token = JWTManager.create_jwt(data.user_id)
+        new_access_token = JWTManager.create_access_token(data.user_id)
 
         return {"access_token": new_access_token}
 
