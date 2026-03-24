@@ -20,7 +20,6 @@ def update_user(
     current_user_id: int = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service)
 ):
-
     try:
         user = user_service.update_user(current_user_id, data.fields)
         return user.to_dict()
@@ -34,10 +33,21 @@ def delete_user(
     current_user_id: int = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service)
 ):
-
     try:
         user_service.delete_user(current_user_id)
         return {"message": "User deleted successfully"}
+
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    
+@router.get("/me")
+def get_user(
+    current_user_id: int = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
+):
+    try:
+        user = user_service.retrieve_user(current_user_id)
+        return user.to_dict()
 
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
