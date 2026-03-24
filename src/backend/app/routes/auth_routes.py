@@ -99,7 +99,7 @@ async def refresh_token(
         new_access_token = JWTManager.create_access_token(data.user_id)
         return {"access_token": new_access_token}
 
-    except jwt.ExpiredSignatureError as e:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Refresh token expired")
     except (jwt.InvalidAlgorithmError, jwt.DecodeError):
         raise HTTPException(status_code=401, detail="Invalid refresh token")

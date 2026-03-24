@@ -21,7 +21,7 @@ for i in range(10):
         engine.connect()
         print("Connected to Postgres")
         break
-    except Exception as e:
+    except Exception:
         print("Postgres not ready!")
         time.sleep(3)
 else:
