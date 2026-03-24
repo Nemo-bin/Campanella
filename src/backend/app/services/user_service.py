@@ -4,6 +4,10 @@ from app.repositories.user_repository import UserRepository
 class UserService:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
+
+    def retrieve_user(self, user_id):
+        user = self.user_repo.get_user_by_id(user_id)
+        return user
     
     def update_user(self, user_id: int, fields: dict):
         user = self.user_repo.update(user_id, fields)

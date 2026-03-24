@@ -97,3 +97,27 @@ def test_delete_user_not_found(user_service):
         user_service.delete_user(999)
 
     assert "User not found" in str(excinfo.value)
+
+# -------------------------------
+# 3) Retrieve user tests
+# -------------------------------
+
+def test_retrieve_user_success(auth_service, user_service):
+    user = auth_service.register_user(
+        email="retrieve@example.com",
+        password="password123",
+        username="retrieveuser"
+    )
+
+    retrieved_user = user_service.retrieve_user(user.id)
+
+    assert retrieved_user is not None
+    assert retrieved_user.id == user.id
+    assert retrieved_user.email == "retrieve@example.com"
+    assert retrieved_user.username == "retrieveuser"
+
+
+def test_retrieve_user_not_found(user_service):
+    result = user_service.retrieve_user(999)
+
+    assert result is None
