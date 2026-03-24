@@ -2,7 +2,7 @@ from sqlalchemy.orm import DeclarativeBase
 import datetime
 
 class Base(DeclarativeBase):
-    __hidden__fields = ["password_hash"]
+    __hidden__fields = {"password_hash"}
     def to_dict(self):
         result = {}
         for column in self.__table__.columns:

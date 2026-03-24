@@ -30,7 +30,7 @@ services:
       - ./src/backend/.env
     depends_on:
       - db
-    command: python -m infrastructure.db.utils.seed
+    command: python -m app.infrastructure.db.utils.seed
 
 volumes:
   postgres_data:
