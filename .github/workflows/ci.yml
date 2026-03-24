@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        run: docker compose version
+
+      # -------------------------
+      # Build containers
+      # -------------------------
+      - name: Build containers
+        run: docker compose build
+
+      # -------------------------
+      # Start database
+      # -------------------------
+      - name: Start database
+        run: docker compose up -d db
+
+      # Wait for Postgres to start
+      - name: Wait for database
+        run: |
+          for i in {1..10}; do
+            docker compose exec db pg_isready -U appuser && break
+            sleep 2
+          done
+
+      # -------------------------
+      # Run linting
+      # -------------------------
+      - name: Run linter
+        run: docker compose run --rm backend ruff check .
+
+      # -------------------------
+      # Run tests
+      # -------------------------
+      - name: Run pytest
+        run: docker compose run --rm backend pytest --cov=app --cov-fail-under=90
+
+      # -------------------------
+      # Shutdown containers
+      # -------------------------
+      - name: Stop containers
+        if: always()
+        run: docker compose down

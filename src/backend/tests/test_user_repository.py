@@ -1,9 +1,8 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
+
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.models.user_model import UserModel
 from app.repositories.user_repository import UserRepository
 from app.utils.security_utils import hash_password
 

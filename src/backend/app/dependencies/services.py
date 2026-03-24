@@ -6,7 +6,7 @@ from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 
-from .repositories import *
+from .repositories import get_refresh_token_repository, get_user_repository
 
 def get_auth_service(
         user_repo: UserRepository = Depends(get_user_repository),

@@ -1,4 +1,3 @@
-from sqlalchemy.sql import func
 from app.repositories.user_repository import UserRepository
 
 class UserService:
