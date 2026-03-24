@@ -29,7 +29,6 @@ class RefreshRequest(BaseModel):
 class LogoutRequest(BaseModel):
     refresh_token: str
 
-
 @router.post("/register", status_code=201)
 async def register_user(
     data: RegisterRequest, 
@@ -46,13 +45,7 @@ async def register_user(
         access_token = JWTManager.create_access_token(user.id)
         refresh_token = JWTManager.create_refresh_token(user.id)
 
-        decoded = jwt.decode(
-            refresh_token,
-            JWTManager._refresh_secret,
-            algorithms=["HS256"]
-        )
-
-        jti = decoded.get("jti")
+        jti = JWTManager.decode_refresh_token(refresh_token).get("jti")
         auth_service.save_refresh_token(jti=jti, user_id=user.id)
 
         return {
@@ -80,13 +73,7 @@ async def login_user(
         access_token = JWTManager.create_access_token(user.id)
         refresh_token = JWTManager.create_refresh_token(user.id)
 
-        decoded = jwt.decode(
-            refresh_token,
-            JWTManager._refresh_secret,
-            algorithms=["HS256"]
-        )
-
-        jti = decoded.get("jti")
+        jti = JWTManager.decode_refresh_token(refresh_token).get("jti")
         auth_service.save_refresh_token(jti=jti, user_id=user.id)
 
         return {
