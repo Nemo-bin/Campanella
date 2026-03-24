@@ -5,3 +5,4 @@ omit =
     */__init__.py
     */session.py
     */routes/*
+    */dependencies/*

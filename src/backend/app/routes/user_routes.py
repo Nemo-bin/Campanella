@@ -1,37 +1,43 @@
-from flask import Blueprint, request, jsonify, g
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from app.services.user_service import UserService
-from app.repositories.user_repository import UserRepository
-from app.middleware.auth_middleware import AuthMiddleware
 
-users_bp = Blueprint("users", __name__, url_prefix="/users")
+from app.dependencies.services import get_user_service
+from app.dependencies.auth import get_current_user_id
 
-@users_bp.route("/update", methods=["POST"])
-@AuthMiddleware.required
-def update_user(current_user_id):
-    data = request.json
-    repo = UserRepository(g.db)
-    service = UserService(repo)
 
-    required_fields = ["fields"]
-    if not data or not all(k in data for k in required_fields):
-        return jsonify({"error": "Missing fields"}), 400
-    
-    try:
-        user = service.update_user(current_user_id, data["fields"])
-        return jsonify(user.to_dict()), 200
+router = APIRouter(prefix="/users", tags=["users"])
 
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
-    
-@users_bp.route("/delete", methods=["POST"])
-@AuthMiddleware.required
-def delete_user(current_user_id):
-    repo = UserRepository(g.db)
-    service = UserService(repo)
+
+class UpdateUserRequest(BaseModel):
+    fields: dict
+
+
+@router.post("/update")
+def update_user(
+    data: UpdateUserRequest,
+    current_user_id: int = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
+):
 
     try:
-        service.delete_user(current_user_id)
-        return jsonify({"message": "User deleted successfully"}), 200
+        user = user_service.update_user(current_user_id, data.fields)
+        return user.to_dict()
 
     except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+        raise HTTPException(status_code=401, detail=str(e))
+
+
+@router.post("/delete")
+def delete_user(
+    current_user_id: int = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
+):
+
+    try:
+        user_service.delete_user(current_user_id)
+        return {"message": "User deleted successfully"}
+
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))

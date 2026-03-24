@@ -25,9 +25,3 @@ def test_db():
         yield db
     finally:
         db.close()
-
-@pytest.fixture
-def override_g_db(monkeypatch, test_db):
-    from flask import g
-    g.db = test_db
-    yield g

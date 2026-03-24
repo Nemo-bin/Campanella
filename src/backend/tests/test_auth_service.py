@@ -116,3 +116,36 @@ def test_is_valid_returns_true_for_existing_token(auth_service, refresh_token_re
 def test_is_valid_returns_false_for_nonexistent_token(auth_service):
     fake_jti = str(uuid.uuid4())
     assert auth_service.is_valid(fake_jti) is False
+
+# -------------------------------
+# 4) Refresh token save / revoke tests
+# -------------------------------
+
+def test_save_refresh_token_persists_token(auth_service, refresh_token_repo):
+    user_id = 1
+    jti = str(uuid.uuid4())
+
+    auth_service.save_refresh_token(jti=jti, user_id=user_id)
+
+    token = refresh_token_repo.get_refresh_token(jti)
+
+    assert token is not None
+    assert token.jti == jti
+    assert token.user_id == user_id
+
+
+def test_revoke_refresh_token_deletes_token(auth_service, refresh_token_repo):
+    user_id = 1
+    jti = str(uuid.uuid4())
+
+    # Save token first
+    refresh_token_repo.create_refresh_token(jti=jti, user_id=user_id)
+
+    # Ensure it exists
+    assert refresh_token_repo.get_refresh_token(jti) is not None
+
+    # Revoke it
+    auth_service.revoke_refresh_token(jti)
+
+    # Should now be gone
+    assert refresh_token_repo.get_refresh_token(jti) is None
