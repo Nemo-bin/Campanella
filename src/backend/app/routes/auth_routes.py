@@ -15,19 +15,17 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
 
-
 class LoginRequest(BaseModel):
     email: str
     password: str
-
 
 class RefreshRequest(BaseModel):
     refresh_token: str
     user_id: int
 
-
 class LogoutRequest(BaseModel):
     refresh_token: str
+
 
 @router.post("/register", status_code=201)
 async def register_user(
@@ -93,24 +91,16 @@ async def refresh_token(
     ):
 
     try:
-        decoded = jwt.decode(
-            data.refresh_token,
-            JWTManager._refresh_secret,
-            algorithms=["HS256"]
-        )
-
-        jti = decoded.get("jti")
+        jti = JWTManager.decode_refresh_token(data.refresh_token).get("jti")
 
         if not auth_service.is_valid(jti):
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
         new_access_token = JWTManager.create_access_token(data.user_id)
-
         return {"access_token": new_access_token}
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as e:
         raise HTTPException(status_code=401, detail="Refresh token expired")
-
     except (jwt.InvalidAlgorithmError, jwt.DecodeError):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
@@ -122,24 +112,16 @@ async def logout_user(
     auth_service = Depends(get_auth_service)
 ):
     try:
-        decoded = jwt.decode(
-            data.refresh_token,
-            JWTManager._refresh_secret,
-            algorithms=["HS256"]
-        )
-
-        jti = decoded.get("jti")
-        token_user_id = decoded.get("user_id")
+        jti = JWTManager.decode_refresh_token(data.refresh_token).get("jti")
+        token_user_id = JWTManager.decode_refresh_token(data.refresh_token).get("user_id")
 
         if token_user_id != current_user_id:
             raise HTTPException(status_code=403, detail="Token does not belong to user")
 
         auth_service.revoke_refresh_token(jti)
-
         return {"message": "Logged out successfully"}
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Refresh token expired")
-
     except (jwt.InvalidAlgorithmError, jwt.DecodeError):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
